@@ -1,3 +1,8 @@
+import inspect
+
+if not hasattr(inspect, 'getargspec'):
+    inspect.getargspec = inspect.getfullargspec
+
 __import__("pkg_resources").declare_namespace(__name__)
 
 from contextlib import contextmanager
