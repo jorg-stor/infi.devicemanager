@@ -82,7 +82,7 @@ class SetupDiGetDevicePropertyKeys(Function):
                 (c_void_p, IN, "DeviceInfoData"),
                 (c_void_p, IN_OUT, "PropertyKeyArray"),
                 (DWORD, IN, "PropertyKeyCount"),
-                (c_void_p, IN_OUT, "RequeiredPropertyKeyCount"),
+                (c_void_p, IN_OUT, "RequiredPropertyKeyCount"),
                 (DWORD, IN, "Flags"))
 
 class SetupDiGetDevicePropertyW(Function):
