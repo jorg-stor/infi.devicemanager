@@ -31,6 +31,19 @@ class Device(object):
             if dis is not None:
                 functions.SetupDiDestroyDeviceInfoList(dis)
 
+    @contextmanager
+    def _open_dev_reg_handle(self, scope, hw_profile, key_type):
+        from .setupapi.regconstants import KEY_READ
+        with self._open_handle() as dev_handle:
+            dis, devinfo = dev_handle
+            h_reg_key = None
+            try:
+                h_reg_key = functions.SetupDiOpenDevRegKey(dis, devinfo, scope, hw_profile, key_type, KEY_READ)
+                yield dis, devinfo, h_reg_key
+            finally:
+                if h_reg_key is not None:
+                    functions.RegCloseKey(h_reg_key)
+
     def _get_setupapi_property(self, key):
         from .setupapi import WindowsException
         with self._open_handle() as handle:
@@ -41,6 +54,21 @@ class Device(object):
                 if exception.winerror == constants.ERROR_NOT_FOUND:
                     raise KeyError(key)
                 raise chain(exception)
+
+    def _get_setupapi_dev_reg_property(self, scope, hw_profile, key_type, reg_value_name):
+        from .setupapi import WindowsException
+        with self._open_dev_reg_handle(scope, hw_profile, key_type) as handle:
+            dis, devinfo, h_reg_key = handle
+            try:
+                return functions.RegQueryValueEx(h_reg_key, reg_value_name).python_object
+            except WindowsException as exception:
+                if exception.winerror == constants.ERROR_FILE_NOT_FOUND:
+                    raise KeyError(reg_value_name)
+                raise chain(exception)
+
+    @cached_method
+    def read_dev_reg_value(self, scope, hw_profile, key_type, reg_value_name):
+        return self._get_setupapi_dev_reg_property(scope, hw_profile, key_type, reg_value_name)
 
     @property
     @cached_method

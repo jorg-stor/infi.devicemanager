@@ -6,6 +6,7 @@ HANDLE = c_void_p
 HWND = HANDLE
 DWORD = c_ulong
 BOOL = c_long
+LSTATUS = c_long
 
 class WindowsException(InfiException):
     def __init__(self, errno):
@@ -36,6 +37,16 @@ def errcheck_bool():
         return result
     return errcheck
 
+def errcheck_lstatus():
+    from .constants import ERROR_SUCCESS
+
+    def errcheck(result, func, args):
+        if result != ERROR_SUCCESS:
+            raise WindowsException(result)
+        return result
+    return errcheck
+
+
 class Function(WrappedFunction):
     return_value = BOOL
 
@@ -50,6 +61,13 @@ class Function(WrappedFunction):
     @classmethod
     def get_parameters(cls):
         pass
+
+
+class RegistryFunction(WrappedFunction):
+    @classmethod
+    def get_library_name(cls):
+        return 'advapi32'
+
 
 class SetupDiGetClassDevsW(Function):
     return_value = HANDLE
@@ -122,6 +140,53 @@ class SetupDiCreateDeviceInfoList(Function):
     def get_parameters(cls):
         return ((c_void_p, IN, "ClassGuid"),
                 (HWND, IN, "parent",))
+
+
+class SetupDiOpenDevRegKey(Function):
+    return_value = HANDLE
+
+    @classmethod
+    def get_errcheck(cls):
+        return errcheck_invalid_handle()
+
+    @classmethod
+    def get_parameters(cls):
+        return ((HANDLE, IN, "DeviceInfoSet"),
+                (c_void_p, IN, "DeviceInfoData"),
+                (DWORD, IN, "Scope"),
+                (DWORD, IN, "HwProfile"),
+                (DWORD, IN, "KeyType"),
+                (DWORD, IN, "samDesired"))
+
+
+class RegQueryValueExW(RegistryFunction):
+    return_value = LSTATUS
+
+    @classmethod
+    def get_errcheck(cls):
+        return errcheck_lstatus()
+
+    @classmethod
+    def get_parameters(cls):
+        return ((HANDLE, IN, "hKey"),
+                (c_void_p, IN, "lpValueName"),
+                (c_void_p, IN, "lpReserved"),
+                (c_void_p, IN, "lpType"),
+                (c_void_p, IN, "lpData"),
+                (c_void_p, IN_OUT, "lpcbData"))
+
+
+class RegCloseKey(RegistryFunction):
+    return_value = LSTATUS
+
+    @classmethod
+    def get_errcheck(cls):
+        return errcheck_lstatus()
+
+    @classmethod
+    def get_parameters(cls):
+        return ((HANDLE, IN, "hDeviceRegistryKey"),)
+
 
 class ConvertStringSecurityDescriptorToSecurityDescriptorW(WrappedFunction):
     return_value = BOOL

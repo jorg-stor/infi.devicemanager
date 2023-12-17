@@ -1,7 +1,7 @@
 
 from infi.exceptools import chain
 from infi.pyutils.decorators import wraps
-from ctypes import c_buffer, byref
+from ctypes import c_buffer, byref, create_string_buffer, c_wchar_p
 from .constants import DIGCF_PRESENT, DIGCF_ALLCLASSES, DIOD_INHERIT_CLASSDRVS
 from .constants import ERROR_NO_MORE_ITEMS, ERROR_BAD_COMMAND, ERROR_INSUFFICIENT_BUFFER
 from .structures import GUID
@@ -129,6 +129,31 @@ def SetupDiCreateDeviceInfoList(guid_string=None):
         guid_buffer = 0
     return interface(guid_buffer, 0)
 
+
+def SetupDiOpenDevRegKey(device_info_set, devinfo_data, scope, hw_profile, key_type, sam_desired):
+    from . import SetupDiOpenDevRegKey as interface
+    device_info_buffer = create_string_buffer(SP_DEVINFO_DATA.write_to_string(devinfo_data),
+                                              SP_DEVINFO_DATA.min_max_sizeof().max)
+    return interface(device_info_set, device_info_buffer, scope, hw_profile, key_type, sam_desired)
+
+
+def RegQueryValueEx(key_handle, value_name):
+    from . import RegQueryValueExW as interface
+    required_size = DWORD()
+    value_type = DWORD()
+    value_name_buffer = c_wchar_p(value_name)
+
+    # get required buffer size
+    #   succeeds and sets required length upon NULL buffer input
+    interface(key_handle, value_name_buffer, 0, byref(value_type), 0, byref(required_size))
+
+    value_buffer = c_buffer(required_size.value)
+    interface(key_handle, value_name_buffer, 0, byref(value_type), value_buffer, byref(required_size))
+    return RegValue(value_buffer.raw, value_type.value, value_name)
+
+
+from . import RegCloseKey
+
 from . import SetupDiDestroyDeviceInfoList
 
 class Property(object):
@@ -183,5 +208,45 @@ class Property(object):
             ConvertSDDL(c_buffer(self._buffer), SDDL_REVISION_1, sd_buffer, 0)
             # TODO requires to call LocalFree
             return SECURITY_DESCRIPTOR.create_from_string(sd_buffer)
+        log.debug("{!r}. {!r}, {!r}".format(self._buffer, self._type, self._key))
+        raise ValueError(self._buffer, self._type)
+
+
+class RegValue(object):
+    def __init__(self, value_buffer, value_type, key):
+        self._buffer = value_buffer
+        self._type = value_type
+        self._object = None
+        self._key = key
+
+    @property
+    def python_object(self):
+        if self._object is None:
+            self._object = self._get_python_object()
+        return self._object
+
+    def _get_python_object(self):
+        from . import regconstants
+        from .structures import Struct, FixedSizeArray, ULInt32, ULInt64, ULInt8
+        if self._type in [regconstants.TYPE_NONE]:
+            return None
+        if self._type in [regconstants.TYPE_SZ,
+                          regconstants.TYPE_EXPAND_SZ,
+                          regconstants.TYPE_LINK]:
+            return self._buffer.decode("utf-16")[:-1]
+        if self._type in [regconstants.TYPE_BINARY]:
+            class Value(Struct):
+                _fields_ = [FixedSizeArray("value", len(self._buffer), ULInt8)]
+            return Value.create_from_string(self._buffer).value
+        if self._type in [regconstants.TYPE_DWORD]:
+            class Value(Struct):
+                _fields_ = [ULInt32("value")]
+            return Value.create_from_string(self._buffer).value
+        if self._type in [regconstants.TYPE_MULTI_SZ]:
+            return self._buffer.decode("utf-16")[:-1].split(chr(0))[:-1]
+        if self._type in [regconstants.TYPE_QWORD]:
+            class Value(Struct):
+                _fields_ = [ULInt64("value")]
+            return Value.create_from_string(self._buffer).value
         log.debug("{!r}. {!r}, {!r}".format(self._buffer, self._type, self._key))
         raise ValueError(self._buffer, self._type)
