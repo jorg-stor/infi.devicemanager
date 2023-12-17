@@ -1,14 +1,14 @@
 
 SETUP_INFO = dict(
-    name = '${project:name}',
-    version = '${infi.recipe.template.version:version}',
-    author = '${infi.recipe.template.version:author}',
-    author_email = '${infi.recipe.template.version:author_email}',
+    name = 'infi.devicemanager-acfork',
+    version = '0.2.23',
+    author = 'Thorsten Gehrmann',
+    author_email = '32952468+thorstengehrmann@users.noreply.github.com',
 
-    url = ${infi.recipe.template.version:homepage},
+    url = 'https://github.com/Infinidat/infi.devicemanager',
     license = 'BSD',
-    description = """${project:description}""",
-    long_description = """${project:long_description}""",
+    description = """Python bindings to Windows Device Manager's APIs""",
+    long_description = """Python bindings to Windows Device Managers' API""",
 
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers = [
@@ -22,17 +22,22 @@ SETUP_INFO = dict(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
 
-    install_requires = ${project:install_requires},
-    namespace_packages = ${project:namespace_packages},
+    install_requires = ['infi.cwrap',
+'infi.exceptools',
+'infi.instruct',
+'infi.pyutils',
+'infi.wioctl',
+'setuptools'],
+    namespace_packages = ['infi'],
 
     package_dir = {'': 'src'},
-    package_data = {'': ${project:package_data}},
+    package_data = {'': []},
     include_package_data = True,
     zip_safe = False,
 
     entry_points = dict(
-        console_scripts = ${project:console_scripts},
-        gui_scripts = ${project:gui_scripts},
+        console_scripts = ['rescan = infi.devicemanager.scripts:rescan'],
+        gui_scripts = [],
         ),
 )
 
