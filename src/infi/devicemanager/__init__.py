@@ -40,7 +40,7 @@ class Device(object):
             except WindowsException as exception:
                 if exception.winerror == constants.ERROR_NOT_FOUND:
                     raise KeyError(key)
-                chain(exception)
+                raise chain(exception)
 
     @property
     @cached_method
