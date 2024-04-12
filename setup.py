@@ -1,6 +1,6 @@
 
 SETUP_INFO = dict(
-    name = 'infi.devicemanager-acfork',
+    name = 'infi.devicemanager',
     version = '0.2.23',
     author = 'Thorsten Gehrmann',
     author_email = '32952468+thorstengehrmann@users.noreply.github.com',
