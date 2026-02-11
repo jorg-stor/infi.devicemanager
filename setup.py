@@ -23,7 +23,7 @@ SETUP_INFO = dict(
     ],
 
     install_requires = ['infi.cwrap',
-'infi.exceptools',
+#'infi.exceptools',
 'infi.instruct',
 'infi.pyutils',
 'infi.wioctl',

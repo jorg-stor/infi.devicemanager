@@ -18,7 +18,7 @@ except ImportError:
 
 
 from contextlib import contextmanager
-from infi.exceptools import chain
+#from infi.exceptools import chain
 from .setupapi import functions, properties, constants
 from infi.pyutils.lazy import cached_method
 from logging import getLogger
@@ -70,7 +70,8 @@ class Device(object):
             except WindowsException as exception:
                 if exception.winerror == constants.ERROR_NOT_FOUND:
                     raise KeyError(key)
-                raise chain(exception)
+                #raise chain(exception)
+                raise exception
 
     def _get_setupapi_dev_reg_property(self, scope, hw_profile, key_type, reg_value_name):
         from .setupapi import WindowsException
@@ -81,7 +82,8 @@ class Device(object):
             except WindowsException as exception:
                 if exception.winerror == constants.ERROR_FILE_NOT_FOUND:
                     raise KeyError(reg_value_name)
-                raise chain(exception)
+                #raise chain(exception)
+                raise exception
 
     @cached_method
     def read_dev_reg_value(self, scope, hw_profile, key_type, reg_value_name):

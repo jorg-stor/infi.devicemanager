@@ -1,7 +1,6 @@
-
 import infi.wioctl
 from . import structures, constants
-from infi.exceptools import chain
+#from infi.exceptools import chain
 import ctypes
 
 def ioctl_scsi_get_address(handle):
@@ -13,7 +12,8 @@ def ioctl_scsi_get_address(handle):
         _ = infi.wioctl.ioctl(handle, infi.wioctl.constants.IOCTL_SCSI_GET_ADDRESS, 0, 0, string, size)
     except infi.wioctl.errors.WindowsException as exception:
         if exception.winerror == infi.wioctl.constants.ERROR_ACCESS_DENIED:
-            raise chain(infi.wioctl.errors.InvalidHandle(exception.winerror))
+            #raise chain(infi.wioctl.errors.InvalidHandle(exception.winerror))
+            raise infi.wioctl.errors.InvalidHandle(exception.winerror)
     instance = structures.SCSI_ADDRESS.create_from_string(string)
     return (instance.PortNumber, instance.PathId, instance.TargetId, instance.Lun)
 

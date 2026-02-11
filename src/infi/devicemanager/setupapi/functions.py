@@ -1,5 +1,5 @@
 
-from infi.exceptools import chain
+#from infi.exceptools import chain
 from infi.pyutils.decorators import wraps
 from ctypes import c_buffer, byref, create_string_buffer, c_wchar_p
 from .constants import DIGCF_PRESENT, DIGCF_ALLCLASSES, DIOD_INHERIT_CLASSDRVS
@@ -58,7 +58,9 @@ def generator(decorated_func):
             except WindowsException as exception:
                 if exception.winerror in [ERROR_NO_MORE_ITEMS, ERROR_BAD_COMMAND]: # TODO why ERROR_BAD_COMMAND?
                     return
-                chain(exception)
+                #chain(exception)
+                raise exception
+                
     return callee
 
 @generator
