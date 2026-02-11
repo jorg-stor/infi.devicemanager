@@ -1,11 +1,11 @@
 
 SETUP_INFO = dict(
     name = 'infi.devicemanager',
-    version = '0.2.23',
+    version = '0.2.24',
     author = 'Thorsten Gehrmann',
     author_email = '32952468+thorstengehrmann@users.noreply.github.com',
 
-    url = 'https://github.com/Infinidat/infi.devicemanager',
+    url = 'https://github.com/jorg-stor/infi.devicemanager',
     license = 'BSD',
     description = """Python bindings to Windows Device Manager's APIs""",
     long_description = """Python bindings to Windows Device Managers' API""",
